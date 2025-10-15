@@ -6,6 +6,7 @@
 #include "ProblemInstance.hpp"
 #include <algorithm>
 #include <iostream>
+#include <filesystem>
 
 bool Solution::isValid(const ProblemInstance &instance) {
     std::vector<bool> visited(instance.dimension, false);
@@ -62,4 +63,44 @@ int Solution::routeExceedingCapacity(const ProblemInstance &instance) {
             return i - 1;
     }
     return -1;
+}
+
+void Solution::saveFullSolutionToFile(const ProblemInstance &instance, const std::string& filename) {
+    std::ofstream file;
+    file.open(R"(G:\Projekty_Studia\_magisterka\algorytmy_optymalizacji\cvrp\output\)" + filename);
+    if (file.is_open()) {
+        file << "Cost," << cost << std::endl;
+        for(int i = 1; i < routes.size() + 1; i++) {
+            int capacity = 0;
+            file << "Route#" << i << ",";
+            for (int stop : routes[i - 1]) {
+                capacity += instance.nodes[stop - 1].demand;
+                file << stop << ",";
+            }
+            file << "Route_capacity," << capacity << std::endl;
+        }
+        file.close();
+    }
+    else {
+        std::cerr << "Unable to open file!" << std::endl;
+    }
+}
+
+void Solution::saveSolutionToFile(const std::string &filename) {
+    bool firstWrite = false;
+    std::ofstream file;
+    std::string name = R"(G:\Projekty_Studia\_magisterka\algorytmy_optymalizacji\cvrp\output\)" + filename;
+    if (!std::filesystem::exists(name))
+        firstWrite = true;
+
+    file.open(name, std::ios_base::app);
+    if (file.is_open()) {
+        if (firstWrite)
+            file << "Cost" << std::endl;
+        file << cost << std::endl;
+        file.close();
+    }
+    else {
+        std::cerr << "Unable to open file!" << std::endl;
+    }
 }
