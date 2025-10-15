@@ -20,6 +20,7 @@ public:
     void calculateAndSetCost(const ProblemInstance& instance);
     void printCapacityPerRoute(const ProblemInstance& instance);
     void saveFullSolutionToFile(const ProblemInstance& instance, const std::string& filename);
+    void saveFullSolutionToFileSolFormat(const ProblemInstance& instance, const std::string& filename);
     void saveSolutionToFile(const std::string& filename);
 
     int routeExceedingCapacity(const ProblemInstance& instance);
@@ -32,7 +33,7 @@ public:
         for(int i = 1; i < solution.routes.size() + 1; i++) {
             os << "Route #" << i << ": ";
             for (int stop : solution.routes[i - 1]) {
-                os << stop << " ";
+                os << stop - 1 << " "; // alignment to .sol format
             }
             os << std::endl;
         }

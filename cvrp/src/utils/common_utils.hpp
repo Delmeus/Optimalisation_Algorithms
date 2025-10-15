@@ -17,8 +17,8 @@ namespace utils {
     };
 
     inline int euclidean_distance(const Node& a, const Node& b) {
-        int dx = a.x - b.x;
-        int dy = a.y - b.y;
-        return static_cast<int>(std::sqrt(dx * dx + dy * dy));
+        double dx = static_cast<double>(a.x) - static_cast<double>(b.x);
+        double dy = static_cast<double>(a.y) - static_cast<double>(b.y);
+        return static_cast<int>(std::floor(std::sqrt(dx * dx + dy * dy) + 0.5));
     }
 }

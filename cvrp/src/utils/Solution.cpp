@@ -29,7 +29,8 @@ void Solution::calculateAndSetCost(const ProblemInstance &instance) {
     cost = 0;
     const auto& depot = instance.nodes[instance.depots[0] - 1];
     for (const auto& route : routes) {
-        if (route.empty()) continue;
+        if (route.empty())
+            continue;
 
         cost += utils::euclidean_distance(depot, instance.nodes[route.front() - 1]);
 
@@ -75,7 +76,7 @@ void Solution::saveFullSolutionToFile(const ProblemInstance &instance, const std
             file << "Route#" << i << ",";
             for (int stop : routes[i - 1]) {
                 capacity += instance.nodes[stop - 1].demand;
-                file << stop << ",";
+                file << stop - 1 << ","; // alignment to .sol format
             }
             file << "Route_capacity," << capacity << std::endl;
         }
@@ -98,6 +99,27 @@ void Solution::saveSolutionToFile(const std::string &filename) {
         if (firstWrite)
             file << "Cost" << std::endl;
         file << cost << std::endl;
+        file.close();
+    }
+    else {
+        std::cerr << "Unable to open file!" << std::endl;
+    }
+}
+
+void Solution::saveFullSolutionToFileSolFormat(const ProblemInstance &instance, const std::string &filename) {
+    std::ofstream file;
+    file.open(R"(G:\Projekty_Studia\_magisterka\algorytmy_optymalizacji\cvrp\output\)" + filename);
+    if (file.is_open()) {
+        for(int i = 1; i < routes.size() + 1; i++) {
+            int capacity = 0;
+            file << "Route #" << i << ": ";
+            for (int stop : routes[i - 1]) {
+                capacity += instance.nodes[stop - 1].demand;
+                file << stop - 1 << " "; // alignment to .sol format
+            }
+            file << std::endl;
+        }
+        file << "Cost " << cost << std::endl;
         file.close();
     }
     else {

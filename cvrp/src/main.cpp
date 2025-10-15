@@ -37,6 +37,7 @@ void runRandomTests(const ProblemInstance& instance, int numberOfTests, int time
 
         if (sol.cost < bestSolutionCost) {
             sol.saveFullSolutionToFile(instance, instance.name + "_random_best_solution.csv");
+            sol.saveFullSolutionToFileSolFormat(instance, instance.name + "_random_best_solution.sol");
             bestSolutionCost = sol.cost;
         }
         sol.saveSolutionToFile(instance.name + "_random_costs.csv");
@@ -55,6 +56,7 @@ void runGeneticTests(const ProblemInstance& instance, int numberOfTests, int tim
 
         if (sol.cost < bestSolutionCost) {
             sol.saveFullSolutionToFile(instance, instance.name + "_genetic_best_solution.csv");
+            sol.saveFullSolutionToFileSolFormat(instance, instance.name + "_genetic_best_solution.sol");
             bestSolutionCost = sol.cost;
         }
         sol.saveSolutionToFile(instance.name + "_genetic_costs.csv");
@@ -64,23 +66,32 @@ void runGeneticTests(const ProblemInstance& instance, int numberOfTests, int tim
 }
 
 int main(int argc, char** argv) {
-    if (argc != 3) {
-        std::cerr << "Program requires 2 arguments! <filename> <time_limit_in_seconds>" << std::endl;
-        return -1;
+    if (argc < 3) {
+        ProblemInstance instance(
+                R"(G:\Projekty_Studia\_magisterka\algorytmy_optymalizacji\cvrp\input\A-n32-k5.vrp)");
+        std::cout << testGenetic(instance, 5);
+
     }
-    std::string instanceName = argv[1];
-    int timeLimit = std::stoi(argv[2]);
+    else {
+//        if (argc != 3) {
+//            std::cerr << "Program requires 2 arguments! <filename> <time_limit_in_seconds>" << std::endl;
+//            return -1;
+//        }
+        std::string instanceName = argv[1];
+        int timeLimit = std::stoi(argv[2]);
 
-    ProblemInstance instance(R"(G:\Projekty_Studia\_magisterka\algorytmy_optymalizacji\cvrp\input\)" + instanceName);
+        ProblemInstance instance(
+                R"(G:\Projekty_Studia\_magisterka\algorytmy_optymalizacji\cvrp\input\)" + instanceName);
 
-    auto sol = Greedy::greedySolution(instance);
-    sol.saveFullSolutionToFile(instance, instance.name + "_greedy.csv");
+        auto sol = Greedy::greedySolution(instance);
+        sol.saveFullSolutionToFile(instance, instance.name + "_greedy.csv");
 
-    std::thread randomThread(runRandomTests, std::cref(instance), NUMBER_OF_TESTS, timeLimit);
-    std::thread geneticThread(runGeneticTests, std::cref(instance), NUMBER_OF_TESTS, timeLimit);
+        std::thread randomThread(runRandomTests, std::cref(instance), NUMBER_OF_TESTS, timeLimit);
+        std::thread geneticThread(runGeneticTests, std::cref(instance), NUMBER_OF_TESTS, timeLimit);
 
-    randomThread.join();
-    geneticThread.join();
+        randomThread.join();
+        geneticThread.join();
+    }
 
     return 0;
 }

@@ -11,6 +11,12 @@
 #include <sstream>
 #include "common_utils.hpp"
 
+enum Section {
+    HEADER,
+    NODE_COORD,
+    DEMAND,
+    DEPOT
+};
 
 class ProblemInstance {
 public:

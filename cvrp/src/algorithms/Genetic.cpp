@@ -11,6 +11,7 @@
 #include <random>
 #include <unordered_set>
 #include <utility>
+#include <ranges>
 
 constexpr double MINIMAL_REQUIRED_FITNESS = 0.7;
 constexpr int MINIMAL_NUMBER_OF_INDIVIDUALS = 50;
@@ -37,7 +38,7 @@ Solution Genetic::solve(size_t max_population_size, long long time_limit, double
         if(bestSolution.cost > population[0].cost) {
             bestSolution = population[0];
         }
-// SORT HERE?
+        std::ranges::sort(population | std::views::transform(&Solution::fitness));
         for(int i = static_cast<int>(population.size()); i >= 0; i--){
             if((population[i].fitness < MINIMAL_REQUIRED_FITNESS && i > MINIMAL_NUMBER_OF_INDIVIDUALS * 2) || i > max_population_size){
                 population.pop_back();
@@ -96,7 +97,7 @@ Solution Genetic::mutate(const Solution& solution, const ProblemInstance& instan
     std::swap(mutatedSolution.routes[r1][i1], mutatedSolution.routes[r2][i2]);
 
     mutatedSolution.calculateAndSetCost(instance);
-    if (mutatedSolution.routeExceedingCapacity(instance) != -1) // should be better way
+    if (mutatedSolution.routeExceedingCapacity(instance) != -1)
         return solution;
     return mutatedSolution;
 }
@@ -135,10 +136,12 @@ Solution Genetic::crossover(const Solution& parentA, const Solution& parentB) {
         current.push_back(id);
         load += demand;
     }
-    if (!current.empty()) child.routes.push_back(current);
+
+    if (!current.empty())
+        child.routes.push_back(current);
 
     child.calculateAndSetCost(instance);
-    if (child.routeExceedingCapacity(instance) != -1) // should be better way
+    if (child.routeExceedingCapacity(instance) != -1)
         return parentA;
     return child;
 }

@@ -21,7 +21,7 @@ void ProblemInstance::loadFromFile(const std::string& filename) {
     }
 
     std::string line;
-    enum Section { HEADER, NODE_COORD, DEMAND, DEPOT } section = HEADER;
+    Section section = HEADER;
 
     std::vector<std::pair<int, std::pair<int, int>>> coords;
     std::vector<std::pair<int, int>> demands;
@@ -69,20 +69,24 @@ void ProblemInstance::loadFromFile(const std::string& filename) {
         else if (section == NODE_COORD) {
             std::istringstream iss(line);
             int id, x, y;
-            if (!(iss >> id >> x >> y)) continue;
+            if (!(iss >> id >> x >> y))
+                continue;
             coords.push_back({id, {x, y}});
         }
         else if (section == DEMAND) {
             std::istringstream iss(line);
             int id, d;
-            if (!(iss >> id >> d)) continue;
+            if (!(iss >> id >> d))
+                continue;
             demands.push_back({id, d});
         }
         else if (section == DEPOT) {
             std::istringstream iss(line);
             int id;
-            if (!(iss >> id)) continue;
-            if (id == -1) continue;
+            if (!(iss >> id))
+                continue;
+            if (id == -1)
+                continue;
             depots.push_back(id);
         }
     }
@@ -96,16 +100,13 @@ void ProblemInstance::loadFromFile(const std::string& filename) {
     }
 
     for (auto &c : coords) {
-        int idx = c.first - 1;
-        if (idx >= 0 && idx < dimension) {
-            nodes[idx].x = c.second.first;
-            nodes[idx].y = c.second.second;
-        }
+        nodes[c.first - 1].x = c.second.first;
+        nodes[c.first - 1].y = c.second.second;
     }
     for (auto &d : demands) {
-        int idx = d.first - 1;
-        if (idx >= 0 && idx < dimension) {
-            nodes[idx].demand = d.second;
+        int i = d.first - 1;
+        if (i >= 0 && i < dimension) {
+            nodes[i].demand = d.second;
         }
     }
 
