@@ -11,4 +11,5 @@ add_executable(algorytmy_optymalizacji ../src/main.cpp
         ../src/utils/Solution.cpp
         ../src/utils/common_utils.hpp
         ../src/algorithms/Random.cpp
-        ../src/utils/Timer.cpp)
+        ../src/utils/Timer.cpp
+        ../src/algorithms/TabuSearch.cpp)

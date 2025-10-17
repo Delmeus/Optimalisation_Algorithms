@@ -17,7 +17,7 @@ constexpr double MINIMAL_REQUIRED_FITNESS = 0.7;
 constexpr int MINIMAL_NUMBER_OF_INDIVIDUALS = 50;
 constexpr double ALLOW_INTO_NEXT_GENERATION_THRESHOLD = 0.7;
 
-Solution Genetic::solve(size_t max_population_size, long long time_limit, double mutation_factor, double crossover_factor) {
+Solution Genetic::solve(size_t max_population_size, int max_number_of_generations, double mutation_factor, double crossover_factor) {
     std::vector<Solution> population;
     population.push_back(Greedy::greedySolution(instance));
     while(population.size() < max_population_size){
@@ -32,11 +32,12 @@ Solution Genetic::solve(size_t max_population_size, long long time_limit, double
 
     Timer timer;
     timer.start();
-
-    while(timer.mili() < time_limit * 1000){
+    int iteration = 0;
+    while(iteration < max_number_of_generations){
         calculateFitness(population);
         if(bestSolution.cost > population[0].cost) {
             bestSolution = population[0];
+            timer.stop();
         }
         std::ranges::sort(population | std::views::transform(&Solution::fitness));
         for(int i = static_cast<int>(population.size()); i >= 0; i--){
@@ -72,7 +73,7 @@ Solution Genetic::solve(size_t max_population_size, long long time_limit, double
             }
         }
         population = nextGeneration;
-        timer.stop();
+        iteration++;
     }
 
     return bestSolution;
@@ -147,7 +148,7 @@ Solution Genetic::crossover(const Solution& parentA, const Solution& parentB) {
 }
 
 void Genetic::calculateFitness(std::vector<Solution>& population) {
-    std::sort(population.begin(), population.end(), compareByCost);
+    std::sort(population.begin(), population.end(), utils::compareByCost);
     double minCost = population.front().cost;
     double maxCost = population.back().cost;
 
@@ -163,9 +164,9 @@ void Genetic::calculateFitness(std::vector<Solution>& population) {
     }
 }
 
-bool Genetic::compareByCost(const Solution &a, const Solution &b) {
-    return a.cost < b.cost;
-}
+//bool Genetic::compareByCost(const Solution &a, const Solution &b) {
+//    return a.cost < b.cost;
+//}
 
 bool Genetic::containsSolution(const std::vector<Solution> &solutions, const Solution &solution) {
     return std::any_of(solutions.begin(), solutions.end(),

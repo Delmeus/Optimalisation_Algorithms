@@ -21,7 +21,7 @@ public:
     void printCapacityPerRoute(const ProblemInstance& instance);
     void saveFullSolutionToFile(const ProblemInstance& instance, const std::string& filename);
     void saveFullSolutionToFileSolFormat(const ProblemInstance& instance, const std::string& filename);
-    void saveSolutionToFile(const std::string& filename);
+    void saveSolutionToFile(const std::string& filename) const;
 
     int routeExceedingCapacity(const ProblemInstance& instance);
 

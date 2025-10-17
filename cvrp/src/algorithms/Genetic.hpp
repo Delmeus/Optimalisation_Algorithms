@@ -11,7 +11,7 @@
 
 class Genetic {
 public:
-    Solution solve(size_t max_population_size, long long time_limit, double mutation_factor = 0.8, double crossover_factor = 0.8);
+    Solution solve(size_t max_population_size, int max_number_of_generations, double mutation_factor = 0.1, double crossover_factor = 0.7);
 
     explicit Genetic(ProblemInstance instance);
 
@@ -21,7 +21,7 @@ private:
     static Solution mutate(const Solution& solution, const ProblemInstance& instance);
     Solution crossover(const Solution& parentA, const Solution& parentB);
     static void calculateFitness(std::vector<Solution>& population);
-    static bool compareByCost(const Solution &a, const Solution &b);
+//    static bool compareByCost(const Solution &a, const Solution &b);
     static bool containsSolution(const std::vector<Solution> &solutions, const Solution &solution);
     static Solution selectParent(const std::vector<Solution>& population, const Solution& otherParent);
 };

@@ -68,7 +68,7 @@ int Solution::routeExceedingCapacity(const ProblemInstance &instance) {
 
 void Solution::saveFullSolutionToFile(const ProblemInstance &instance, const std::string& filename) {
     std::ofstream file;
-    file.open(R"(G:\Projekty_Studia\_magisterka\algorytmy_optymalizacji\cvrp\output\)" + filename);
+    file.open("../../output/" + filename, std::ios_base::app);
     if (file.is_open()) {
         file << "Cost," << cost << std::endl;
         for(int i = 1; i < routes.size() + 1; i++) {
@@ -80,6 +80,7 @@ void Solution::saveFullSolutionToFile(const ProblemInstance &instance, const std
             }
             file << "Route_capacity," << capacity << std::endl;
         }
+        file  << std::endl;
         file.close();
     }
     else {
@@ -87,10 +88,10 @@ void Solution::saveFullSolutionToFile(const ProblemInstance &instance, const std
     }
 }
 
-void Solution::saveSolutionToFile(const std::string &filename) {
+void Solution::saveSolutionToFile(const std::string &filename) const {
     bool firstWrite = false;
     std::ofstream file;
-    std::string name = R"(G:\Projekty_Studia\_magisterka\algorytmy_optymalizacji\cvrp\output\)" + filename;
+    std::string name = "../../output/" + filename;
     if (!std::filesystem::exists(name))
         firstWrite = true;
 
@@ -108,7 +109,7 @@ void Solution::saveSolutionToFile(const std::string &filename) {
 
 void Solution::saveFullSolutionToFileSolFormat(const ProblemInstance &instance, const std::string &filename) {
     std::ofstream file;
-    file.open(R"(G:\Projekty_Studia\_magisterka\algorytmy_optymalizacji\cvrp\output\)" + filename);
+    file.open("../../output/" + filename, std::ios_base::app);
     if (file.is_open()) {
         for(int i = 1; i < routes.size() + 1; i++) {
             int capacity = 0;
@@ -119,7 +120,7 @@ void Solution::saveFullSolutionToFileSolFormat(const ProblemInstance &instance, 
             }
             file << std::endl;
         }
-        file << "Cost " << cost << std::endl;
+        file << "Cost " << cost << std::endl << std::endl;
         file.close();
     }
     else {

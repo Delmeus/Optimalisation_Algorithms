@@ -21,4 +21,9 @@ namespace utils {
         double dy = static_cast<double>(a.y) - static_cast<double>(b.y);
         return static_cast<int>(std::floor(std::sqrt(dx * dx + dy * dy) + 0.5));
     }
+
+    inline bool compareByCost(const Solution &a, const Solution &b) {
+        return a.cost < b.cost;
+    }
+
 }
