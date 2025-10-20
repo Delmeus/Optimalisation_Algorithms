@@ -20,8 +20,8 @@ private:
 
     static Solution mutate(const Solution& solution, const ProblemInstance& instance);
     Solution crossover(const Solution& parentA, const Solution& parentB);
+    Solution crossoverOX(const Solution& parentA, const Solution& parentB);
     static void calculateFitness(std::vector<Solution>& population);
-//    static bool compareByCost(const Solution &a, const Solution &b);
     static bool containsSolution(const std::vector<Solution> &solutions, const Solution &solution);
     static Solution selectParent(const std::vector<Solution>& population, const Solution& otherParent);
 };

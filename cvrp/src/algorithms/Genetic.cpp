@@ -38,6 +38,7 @@ Solution Genetic::solve(size_t max_population_size, int max_number_of_generation
         if(bestSolution.cost > population[0].cost) {
             bestSolution = population[0];
             timer.stop();
+            bestSolution.timeFound = timer.mili();
         }
         std::ranges::sort(population | std::views::transform(&Solution::fitness));
         for(int i = static_cast<int>(population.size()); i >= 0; i--){
@@ -147,6 +148,77 @@ Solution Genetic::crossover(const Solution& parentA, const Solution& parentB) {
     return child;
 }
 
+Solution Genetic::crossoverOX(const Solution& parentA, const Solution& parentB){
+    Solution child;
+    std::unordered_set<int> used;
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> randomCustomer(0, static_cast<int>(parentA.routes.size() / 2 - 1));
+    std::vector<int> pathA;
+    std::vector<int> pathB;
+
+    for (const auto& route : parentA.routes) {
+        pathA.insert(pathA.end(), route.begin(), route.end());
+    }
+
+    for (const auto& route : parentB.routes) {
+        pathB.insert(pathB.end(), route.begin(), route.end());
+    }
+
+    int x1 = randomCustomer(gen);
+    int x2 = std::uniform_int_distribution<>(x1 + 1, x1 + static_cast<int>(parentA.routes.size() / 4))(gen);
+
+    std::vector<int> newPath;
+    newPath.insert(newPath.end(), pathA.begin(), pathA.begin() + x1);
+    used.insert(pathA.begin(), pathA.begin() + x1);
+
+    for (int i = x1; i < x2; ++i) {
+        int customer = pathB[i];
+        if (!used.count(customer)) {
+            newPath.push_back(customer);
+            used.insert(customer);
+        }
+    }
+
+    for (size_t i = x2; i < pathA.size(); ++i) {
+        int customer = pathA[i];
+        if (!used.count(customer)) {
+            newPath.push_back(customer);
+            used.insert(customer);
+        }
+    }
+
+    for (int customer : pathB) {
+        if (!used.count(customer))
+            newPath.push_back(customer);
+    }
+
+
+    std::vector<int> currentRoute;
+    int currentLoad = 0;
+
+    for (int customer : newPath) {
+        if (currentLoad + instance.nodes[customer - 1].demand > instance.capacity) {
+            if (!currentRoute.empty()) {
+                child.routes.push_back(currentRoute);
+                currentRoute.clear();
+            }
+            currentLoad = 0;
+        }
+        currentRoute.push_back(customer);
+        currentLoad += instance.nodes[customer - 1].demand;
+    }
+    if (!currentRoute.empty())
+        child.routes.push_back(currentRoute);
+
+    child.calculateAndSetCost(instance);
+    if (child.routeExceedingCapacity(instance) != -1 || !child.isValid(instance))
+        return parentA;
+
+    return child;
+}
+
 void Genetic::calculateFitness(std::vector<Solution>& population) {
     std::sort(population.begin(), population.end(), utils::compareByCost);
     double minCost = population.front().cost;
@@ -163,10 +235,6 @@ void Genetic::calculateFitness(std::vector<Solution>& population) {
         }
     }
 }
-
-//bool Genetic::compareByCost(const Solution &a, const Solution &b) {
-//    return a.cost < b.cost;
-//}
 
 bool Genetic::containsSolution(const std::vector<Solution> &solutions, const Solution &solution) {
     return std::any_of(solutions.begin(), solutions.end(),
@@ -188,9 +256,9 @@ Solution Genetic::selectParent(const std::vector<Solution>& population, const So
     std::uniform_real_distribution<> distribution(0.0, totalFitness);
     double randomValue = distribution(gen);
     double cumulativeFitness = 0.0;
+
     for (const auto& node : population) {
         cumulativeFitness += node.fitness;
-
         double selectionThreshold = std::uniform_real_distribution<>(0.001, 0.4)(gen);
         if (cumulativeFitness >= randomValue * selectionThreshold && node != otherParent) {
             return node;

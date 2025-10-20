@@ -22,6 +22,7 @@ Solution testRandom(const ProblemInstance& instance, int iterationLimit) {
         if (sol.cost < bestSolution.cost) {
             bestSolution = sol;
             timer.stop();
+            bestSolution.timeFound = timer.mili();
         }
         iteration++;
     }
@@ -47,11 +48,11 @@ void runRandomTests(const ProblemInstance& instance, int numberOfTests, int iter
         sol = testRandom(instance, iterationLimit);
 
         if (sol.cost < bestSolutionCost) {
-            sol.saveFullSolutionToFile(instance, instance.name + "_random_best_solution.csv");
-            sol.saveFullSolutionToFileSolFormat(instance, instance.name + "_random_best_solution.sol");
+            sol.saveFullSolutionToFile(instance, "random/" + instance.name + "_random_best_solution.csv");
+            sol.saveFullSolutionToFileSolFormat(instance, "random/" + instance.name + "_random_best_solution.sol");
             bestSolutionCost = sol.cost;
         }
-        sol.saveSolutionToFile(instance.name + "_random_costs.csv");
+        sol.saveSolutionToFile("random/" + instance.name + "_random_costs.csv");
     }
 
     std::cout << "[RANDOM] finished. Best cost = " << bestSolutionCost << std::endl;
@@ -64,9 +65,9 @@ void runGeneticTests(const ProblemInstance& instance, int testNumber, int iterat
     sol = testGenetic(instance, iterationLimit);
 
     std::lock_guard<std::mutex> lock(fileGeneticMutex);
-    sol.saveFullSolutionToFile(instance, instance.name + "_genetic_best_solution.csv");
-    sol.saveFullSolutionToFileSolFormat(instance, instance.name + "_genetic_best_solution.sol");
-    sol.saveSolutionToFile(instance.name + "_genetic_costs.csv");
+    sol.saveFullSolutionToFile(instance, "genetic/" + instance.name + "_genetic_best_solution.csv");
+    sol.saveFullSolutionToFileSolFormat(instance, "genetic/" + instance.name + "_genetic_best_solution.sol");
+    sol.saveSolutionToFile("genetic/" + instance.name + "_genetic_costs.csv");
 
     std::cout << "[GENETIC] finished. Best cost = " << sol.cost << std::endl;
 }
@@ -78,9 +79,9 @@ void runTabuTests(const ProblemInstance& instance, int testNumber, int iteration
     sol = testTabu(instance, iterationLimit);
 
     std::lock_guard<std::mutex> lock(fileGeneticMutex);
-    sol.saveFullSolutionToFile(instance, instance.name + "_tabu_best_solution.csv");
-    sol.saveFullSolutionToFileSolFormat(instance, instance.name + "_tabu_best_solution.sol");
-    sol.saveSolutionToFile(instance.name + "_tabu_costs.csv");
+    sol.saveFullSolutionToFile(instance, "tabu/" + instance.name + "_tabu_best_solution.csv");
+    sol.saveFullSolutionToFileSolFormat(instance, "tabu/" + instance.name + "_tabu_best_solution.sol");
+    sol.saveSolutionToFile("tabu/" + instance.name + "_tabu_costs.csv");
 
     std::cout << "[TABU SEARCH] finished. Best cost = " << sol.cost << std::endl;
 }
@@ -88,8 +89,8 @@ void runTabuTests(const ProblemInstance& instance, int testNumber, int iteration
 int main(int argc, char** argv) {
     if (argc < 3) {
         ProblemInstance instance("../../input/A-n32-k5.vrp");
-//        std::cout << testGenetic(instance, 10000);
-        std::cout << testTabu(instance, 10000);
+        std::cout << testGenetic(instance, 10000);
+//        std::cout << testTabu(instance, 10000);
     }
     else {
         std::string instanceName = argv[1];
@@ -97,8 +98,12 @@ int main(int argc, char** argv) {
 
         ProblemInstance instance("../../input/" + instanceName);
 
+        Timer timer;
+        timer.start();
         auto sol = Greedy::greedySolution(instance);
-        sol.saveFullSolutionToFile(instance, instance.name + "_greedy.csv");
+        timer.stop();
+        sol.timeFound = timer.mili();
+        sol.saveFullSolutionToFile(instance, "greedy/" + instance.name + "_greedy.csv");
 
         std::thread randomThread(runRandomTests, std::cref(instance), NUMBER_OF_TESTS, iterationLimit);
 

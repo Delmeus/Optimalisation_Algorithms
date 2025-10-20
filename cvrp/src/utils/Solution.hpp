@@ -16,6 +16,8 @@ public:
     std::vector<std::vector<int>> routes;
     int cost = 0;
     double fitness;
+    long long timeFound;
+
     bool isValid(const ProblemInstance& instance);
     void calculateAndSetCost(const ProblemInstance& instance);
     void printCapacityPerRoute(const ProblemInstance& instance);

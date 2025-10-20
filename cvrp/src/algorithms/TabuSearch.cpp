@@ -41,6 +41,7 @@ Solution TabuSearch::solve(int max_number_of_iterations) {
         if (currentSolution.cost < bestSolution.cost) {
             bestSolution = currentSolution;
             timer.stop();
+            bestSolution.timeFound = timer.mili();
         }
 
         iteration++;

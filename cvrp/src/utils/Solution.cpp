@@ -80,6 +80,7 @@ void Solution::saveFullSolutionToFile(const ProblemInstance &instance, const std
             }
             file << "Route_capacity," << capacity << std::endl;
         }
+        file << "time," << timeFound << ",ms" << std::endl;
         file  << std::endl;
         file.close();
     }
