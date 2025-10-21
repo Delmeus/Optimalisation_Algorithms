@@ -21,7 +21,7 @@ struct Neighbour {
 
 class TabuSearch {
 public:
-    Solution solve(int max_number_of_iterations);
+    Solution solve(int max_number_of_iterations, int id);
 
     explicit TabuSearch(ProblemInstance instance);
 

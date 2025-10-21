@@ -26,4 +26,15 @@ namespace utils {
         return a.cost < b.cost;
     }
 
+    inline void writeGenerationToFile(std::ofstream& file, const std::vector<Solution>& population) {
+        if (population.empty())
+            return;
+        int cumulativeCost = 0;
+        for (const auto& node : population) {
+            cumulativeCost += node.cost;
+        }
+        float avg = static_cast<float>(cumulativeCost) / static_cast<float>(population.size());
+        file << population.front().cost << "," << population.back().cost << "," << avg << std::endl;
+    }
+
 }

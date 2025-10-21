@@ -3,7 +3,8 @@
 //
 
 #include "Greedy.hpp"
-#include "..\utils\common_utils.hpp"
+#include "../utils/common_utils.hpp"
+#include <climits>
 
 
 Solution Greedy::greedySolution(ProblemInstance& instance) {

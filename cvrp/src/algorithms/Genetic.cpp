@@ -8,6 +8,7 @@
 #include "../utils/Timer.hpp"
 #include <algorithm>
 #include <chrono>
+#include <climits>
 #include <random>
 #include <unordered_set>
 #include <utility>
@@ -17,7 +18,9 @@ constexpr double MINIMAL_REQUIRED_FITNESS = 0.7;
 constexpr int MINIMAL_NUMBER_OF_INDIVIDUALS = 50;
 constexpr double ALLOW_INTO_NEXT_GENERATION_THRESHOLD = 0.7;
 
-Solution Genetic::solve(size_t max_population_size, int max_number_of_generations, double mutation_factor, double crossover_factor) {
+Solution Genetic::solve(size_t max_population_size, int max_number_of_generations, int id, double mutation_factor, double crossover_factor) {
+    std::ofstream file;
+    file.open("../../output/genetic/generations/gen" + std::to_string(id) + ".csv");
     std::vector<Solution> population;
     population.push_back(Greedy::greedySolution(instance));
     while(population.size() < max_population_size){
@@ -41,6 +44,8 @@ Solution Genetic::solve(size_t max_population_size, int max_number_of_generation
             bestSolution.timeFound = timer.mili();
         }
         std::ranges::sort(population | std::views::transform(&Solution::fitness));
+        if (file.is_open())
+            utils::writeGenerationToFile(file, population);
         for(int i = static_cast<int>(population.size()); i >= 0; i--){
             if((population[i].fitness < MINIMAL_REQUIRED_FITNESS && i > MINIMAL_NUMBER_OF_INDIVIDUALS * 2) || i > max_population_size){
                 population.pop_back();
@@ -76,7 +81,8 @@ Solution Genetic::solve(size_t max_population_size, int max_number_of_generation
         population = nextGeneration;
         iteration++;
     }
-
+    if (file.is_open())
+        file.close();
     return bestSolution;
 }
 
@@ -267,5 +273,14 @@ Solution Genetic::selectParent(const std::vector<Solution>& population, const So
 
     return population.front();
 }
+
+// void Genetic::writeGenerationToFile(std::ofstream& file, const std::vector<Solution>& population) {
+//     int cumulativeCost = 0;
+//     for (const auto& node : population) {
+//         cumulativeCost += node.cost;
+//     }
+//     float avg = static_cast<float>(cumulativeCost) / static_cast<float>(population.size());
+//     file << population.front().cost << "," << population.back().cost << "," << avg << std::endl;
+// }
 
 Genetic::Genetic(ProblemInstance instance) : instance(std::move(instance)) {}

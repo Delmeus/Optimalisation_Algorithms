@@ -29,14 +29,14 @@ Solution testRandom(const ProblemInstance& instance, int iterationLimit) {
     return bestSolution;
 }
 
-Solution testGenetic(const ProblemInstance& instance, int iterationLimit, int maxPopulationSize = 500) {
+Solution testGenetic(const ProblemInstance& instance, int iterationLimit, int id, int maxPopulationSize = 500) {
     Genetic genetic(instance);
-    return genetic.solve(maxPopulationSize, iterationLimit);
+    return genetic.solve(maxPopulationSize, iterationLimit, id);
 }
 
-Solution testTabu(const ProblemInstance& instance, int iterationLimit) {
+Solution testTabu(const ProblemInstance& instance, int iterationLimit, int id) {
     TabuSearch ts(instance);
-    return ts.solve(iterationLimit);
+    return ts.solve(iterationLimit, id);
 }
 
 void runRandomTests(const ProblemInstance& instance, int numberOfTests, int iterationLimit) {
@@ -62,7 +62,7 @@ void runGeneticTests(const ProblemInstance& instance, int testNumber, int iterat
     Solution sol;
 
     std::cout << "[GENETIC] " << testNumber << " running" << std::endl;
-    sol = testGenetic(instance, iterationLimit);
+    sol = testGenetic(instance, iterationLimit, testNumber);
 
     std::lock_guard<std::mutex> lock(fileGeneticMutex);
     sol.saveFullSolutionToFile(instance, "genetic/" + instance.name + "_genetic_best_solution.csv");
@@ -76,7 +76,7 @@ void runTabuTests(const ProblemInstance& instance, int testNumber, int iteration
     Solution sol;
 
     std::cout << "[TABU SEARCH] " << testNumber << " running" << std::endl;
-    sol = testTabu(instance, iterationLimit);
+    sol = testTabu(instance, iterationLimit, testNumber);
 
     std::lock_guard<std::mutex> lock(fileGeneticMutex);
     sol.saveFullSolutionToFile(instance, "tabu/" + instance.name + "_tabu_best_solution.csv");
@@ -89,8 +89,9 @@ void runTabuTests(const ProblemInstance& instance, int testNumber, int iteration
 int main(int argc, char** argv) {
     if (argc < 3) {
         ProblemInstance instance("../../input/A-n32-k5.vrp");
-        std::cout << testGenetic(instance, 10000);
-//        std::cout << testTabu(instance, 10000);
+        // std::cout << testGenetic(instance, 10000, 0);
+        std::cout << testTabu(instance, 10000, 0);
+        // std::cout << Greedy::greedySolution(instance);
     }
     else {
         std::string instanceName = argv[1];
