@@ -20,7 +20,7 @@ constexpr double ALLOW_INTO_NEXT_GENERATION_THRESHOLD = 0.7;
 
 Solution Genetic::solve(size_t max_population_size, int max_number_of_generations, int id, double mutation_factor, double crossover_factor) {
     std::ofstream file;
-    file.open("../../output/genetic/generations/gen" + std::to_string(id) + ".csv");
+    file.open("../../output/genetic/generations/" + instance.name + "/gen" +  std::to_string(id) + ".csv");
     std::vector<Solution> population;
     population.push_back(Greedy::greedySolution(instance));
     while(population.size() < max_population_size){
@@ -273,14 +273,5 @@ Solution Genetic::selectParent(const std::vector<Solution>& population, const So
 
     return population.front();
 }
-
-// void Genetic::writeGenerationToFile(std::ofstream& file, const std::vector<Solution>& population) {
-//     int cumulativeCost = 0;
-//     for (const auto& node : population) {
-//         cumulativeCost += node.cost;
-//     }
-//     float avg = static_cast<float>(cumulativeCost) / static_cast<float>(population.size());
-//     file << population.front().cost << "," << population.back().cost << "," << avg << std::endl;
-// }
 
 Genetic::Genetic(ProblemInstance instance) : instance(std::move(instance)) {}

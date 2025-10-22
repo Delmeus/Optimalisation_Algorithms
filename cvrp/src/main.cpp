@@ -1,5 +1,6 @@
 #include <iostream>
 #include <thread>
+#include <climits>
 #include "utils/ProblemInstance.hpp"
 #include "algorithms/Greedy.hpp"
 #include "algorithms/Random.hpp"
@@ -98,14 +99,13 @@ int main(int argc, char** argv) {
         int iterationLimit = std::stoi(argv[2]);
 
         ProblemInstance instance("../../input/" + instanceName);
-
-        Timer timer;
-        timer.start();
-        auto sol = Greedy::greedySolution(instance);
-        timer.stop();
-        sol.timeFound = timer.mili();
-        sol.saveFullSolutionToFile(instance, "greedy/" + instance.name + "_greedy.csv");
-
+        int bestCost = INT_MAX;
+        for (int i = 0; i < instance.dimension - 1; i++) {
+            auto sol = Greedy::greedySolution(instance, i);
+            if (sol.cost < bestCost)
+                sol.saveFullSolutionToFile(instance, "greedy/" + instance.name + "_greedy.csv");
+            sol.saveSolutionToFile("greedy/" + instance.name + "_greedy_costs.csv");
+        }
         std::thread randomThread(runRandomTests, std::cref(instance), NUMBER_OF_TESTS, iterationLimit);
 
         std::vector<std::thread> geneticThreads;

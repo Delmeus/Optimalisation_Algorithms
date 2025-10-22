@@ -7,10 +7,10 @@
 #include <climits>
 
 
-Solution Greedy::greedySolution(ProblemInstance& instance) {
+Solution Greedy::greedySolution(ProblemInstance& instance, int firstCustomer) {
     Solution solution;
     int depotId = instance.depots[0];
-    const utils::Node depot = instance.nodes[depotId - 1];
+    const utils::Node& depot = instance.nodes[depotId - 1];
 
     std::vector<bool> visited(instance.dimension, false);
     visited[depotId - 1] = true;
@@ -19,21 +19,30 @@ Solution Greedy::greedySolution(ProblemInstance& instance) {
 
     while (remaining > 0) {
         std::vector<int> route;
-        int cost = 0;
+        int routeCost = 0;
         int load = 0;
         const utils::Node* current = &depot;
+
+        if (firstCustomer >= 1 && firstCustomer <= instance.dimension && firstCustomer != depotId &&
+            !visited[firstCustomer - 1] && instance.nodes[firstCustomer - 1].demand <= instance.capacity) {
+
+            const utils::Node& firstNode = instance.nodes[firstCustomer - 1];
+            route.push_back(firstNode.id);
+            routeCost += utils::euclidean_distance(depot, firstNode);
+            load += firstNode.demand;
+            visited[firstCustomer - 1] = true;
+            remaining--;
+            current = &firstNode;
+        }
 
         while (true) {
             int bestDist = INT_MAX;
             int bestIdx = -1;
 
             for (const auto& node : instance.nodes) {
-                if (node.id == depotId)
-                    continue;
-                if (visited[node.id - 1])
-                    continue;
-                if (load + node.demand > instance.capacity)
-                    continue;
+                if (node.id == depotId) continue;
+                if (visited[node.id - 1]) continue;
+                if (load + node.demand > instance.capacity) continue;
 
                 int d = utils::euclidean_distance(*current, node);
                 if (d < bestDist) {
@@ -47,15 +56,17 @@ Solution Greedy::greedySolution(ProblemInstance& instance) {
 
             visited[bestIdx] = true;
             route.push_back(instance.nodes[bestIdx].id);
-            cost += bestDist;
+            routeCost += bestDist;
             load += instance.nodes[bestIdx].demand;
             current = &instance.nodes[bestIdx];
             remaining--;
         }
 
-        cost += euclidean_distance(*current, depot);
+        routeCost += utils::euclidean_distance(*current, depot);
         solution.routes.push_back(route);
-        solution.cost += cost;
+        solution.cost += routeCost;
+
+        firstCustomer = -1;
     }
 
     return solution;

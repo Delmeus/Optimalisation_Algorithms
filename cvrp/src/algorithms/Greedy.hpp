@@ -10,7 +10,7 @@
 
 class Greedy {
 public:
-    static Solution greedySolution(ProblemInstance& instance);
+    static Solution greedySolution(ProblemInstance& instance, int firstCustomer = -1);
 };
 
 
