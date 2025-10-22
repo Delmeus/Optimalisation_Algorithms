@@ -16,7 +16,7 @@
 
 constexpr double MINIMAL_REQUIRED_FITNESS = 0.7;
 constexpr int MINIMAL_NUMBER_OF_INDIVIDUALS = 50;
-constexpr double ALLOW_INTO_NEXT_GENERATION_THRESHOLD = 0.7;
+constexpr double ALLOW_INTO_NEXT_GENERATION_THRESHOLD = 0.97;
 
 Solution Genetic::solve(size_t max_population_size, int max_number_of_generations, int id, double mutation_factor, double crossover_factor) {
     std::ofstream file;
