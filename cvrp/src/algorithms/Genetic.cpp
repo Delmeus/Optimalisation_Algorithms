@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <chrono>
 #include <climits>
+#include <iostream>
 #include <random>
 #include <unordered_set>
 #include <utility>
@@ -18,7 +19,7 @@ constexpr double MINIMAL_REQUIRED_FITNESS = 0.7;
 constexpr int MINIMAL_NUMBER_OF_INDIVIDUALS = 50;
 constexpr double ALLOW_INTO_NEXT_GENERATION_THRESHOLD = 0.97;
 
-Solution Genetic::solve(size_t max_population_size, int max_number_of_generations, int id, double mutation_factor, double crossover_factor) {
+Solution Genetic::solve(size_t max_population_size, int max_number_of_generations, int id, double crossover_factor) {
     std::ofstream file;
     file.open("../../output/genetic/generations/" + instance.name + "/gen" +  std::to_string(id) + ".csv");
     std::vector<Solution> population;
@@ -33,15 +34,12 @@ Solution Genetic::solve(size_t max_population_size, int max_number_of_generation
     std::default_random_engine generator(seed);
     std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
-    Timer timer;
-    timer.start();
     int iteration = 0;
     while(iteration < max_number_of_generations){
+        // std::cout << iteration << std::endl;
         calculateFitness(population);
         if(bestSolution.cost > population[0].cost) {
             bestSolution = population[0];
-            timer.stop();
-            bestSolution.timeFound = timer.mili();
         }
         std::ranges::sort(population | std::views::transform(&Solution::fitness));
         if (file.is_open())
@@ -62,13 +60,18 @@ Solution Genetic::solve(size_t max_population_size, int max_number_of_generation
             }
 
             double value = distribution(generator);
-            if(1 - value <= mutation_factor){
-                Solution mutatedSolution = mutate(element, instance);
+            if(value <= mutation_factor){
+                Solution mutatedSolution;
+                if (distribution(generator) > 0.1)
+                    mutatedSolution = mutate(element, instance);
+                else
+                    mutatedSolution = mutateGene(element);
                 mutatedSolution.calculateAndSetCost(instance);
                 if(!containsSolution(nextGeneration, mutatedSolution)) {
                     nextGeneration.push_back(mutatedSolution);
                 }
             }
+
             value = distribution(generator);
             if(1 - value <= crossover_factor){
                 auto child = crossover(element, selectParent(population, element));
@@ -108,6 +111,62 @@ Solution Genetic::mutate(const Solution& solution, const ProblemInstance& instan
     if (mutatedSolution.routeExceedingCapacity(instance) != -1)
         return solution;
     return mutatedSolution;
+}
+
+Solution Genetic::mutateGene(const Solution& solution) {
+    /*Solution mutated = solution;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> prob(0.0, 1.0);
+
+    for (size_t r = 0; r < mutated.routes.size(); ++r) {
+        for (size_t i = 0; i < mutated.routes[r].size(); ++i) {
+            if (prob(gen) < 0.01) {  // Pm = 0.01
+                size_t r2 = r;
+                size_t i2 = std::uniform_int_distribution<>(0, mutated.routes[r2].size() - 1)(gen);
+                std::swap(mutated.routes[r][i], mutated.routes[r2][i2]);
+            }
+        }
+    }
+
+    mutated.calculateAndSetCost(instance);
+    if (mutated.routeExceedingCapacity(instance) != -1)
+        return solution;
+
+    return mutated;*/
+
+    std::vector<std::pair<int,int>> positions;
+    for (size_t r = 0; r < solution.routes.size(); ++r)
+        for (size_t i = 0; i < solution.routes[r].size(); ++i)
+            positions.emplace_back(r, i);
+
+    if (positions.size() < 2) return solution;
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dist(0, positions.size() - 1);
+
+    Solution mutated = solution;
+
+    int numMutations = std::round(mutation_factor * positions.size());
+    for (int k = 0; k < numMutations; ++k) {
+        auto [r1, i1] = positions[dist(gen)];
+        auto [r2, i2] = positions[dist(gen)];
+
+        while (r1 == r2 && i1 == i2)
+            std::tie(r2, i2) = positions[dist(gen)];
+
+        auto temp = mutated;
+        std::swap(temp.routes[r1][i1], temp.routes[r2][i2]);
+        if (temp.routeExceedingCapacity(instance) != -1)
+            mutated = temp;
+    }
+
+    mutated.calculateAndSetCost(instance);
+    if (mutated.routeExceedingCapacity(instance) != -1)
+        return solution;
+
+    return mutated;
 }
 
 Solution Genetic::crossover(const Solution& parentA, const Solution& parentB) {
@@ -274,4 +333,4 @@ Solution Genetic::selectParent(const std::vector<Solution>& population, const So
     return population.front();
 }
 
-Genetic::Genetic(ProblemInstance instance) : instance(std::move(instance)) {}
+Genetic::Genetic(ProblemInstance instance, double mutation_factor) : instance(std::move(instance)), mutation_factor{mutation_factor} {}

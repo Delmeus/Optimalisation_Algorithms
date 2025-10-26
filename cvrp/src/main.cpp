@@ -31,7 +31,7 @@ Solution testRandom(const ProblemInstance& instance, int iterationLimit) {
 }
 
 Solution testGenetic(const ProblemInstance& instance, int iterationLimit, int id, int maxPopulationSize = 500) {
-    Genetic genetic(instance);
+    Genetic genetic(instance, 0.1);
     return genetic.solve(maxPopulationSize, iterationLimit, id);
 }
 
@@ -90,8 +90,8 @@ void runTabuTests(const ProblemInstance& instance, int testNumber, int iteration
 int main(int argc, char** argv) {
     if (argc < 3) {
         ProblemInstance instance("../../input/A-n32-k5.vrp");
-        // std::cout << testGenetic(instance, 10000, 0);
-        std::cout << testTabu(instance, 10000, 0);
+        std::cout << testGenetic(instance, 10000, 0);
+        // std::cout << testTabu(instance, 10000, 0);
         // std::cout << Greedy::greedySolution(instance);
     }
     else {

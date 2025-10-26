@@ -24,7 +24,7 @@ Solution Greedy::greedySolution(ProblemInstance& instance, int firstCustomer) {
         const utils::Node* current = &depot;
 
         if (firstCustomer >= 1 && firstCustomer <= instance.dimension && firstCustomer != depotId &&
-            !visited[firstCustomer - 1] && instance.nodes[firstCustomer - 1].demand <= instance.capacity) {
+            !visited[firstCustomer - 1]) {
 
             const utils::Node& firstNode = instance.nodes[firstCustomer - 1];
             route.push_back(firstNode.id);
@@ -40,9 +40,12 @@ Solution Greedy::greedySolution(ProblemInstance& instance, int firstCustomer) {
             int bestIdx = -1;
 
             for (const auto& node : instance.nodes) {
-                if (node.id == depotId) continue;
-                if (visited[node.id - 1]) continue;
-                if (load + node.demand > instance.capacity) continue;
+                if (node.id == depotId)
+                    continue;
+                if (visited[node.id - 1])
+                    continue;
+                if (load + node.demand > instance.capacity)
+                    continue;
 
                 int d = utils::euclidean_distance(*current, node);
                 if (d < bestDist) {

@@ -11,14 +11,16 @@
 
 class Genetic {
 public:
-    Solution solve(size_t max_population_size, int max_number_of_generations, int id, double mutation_factor = 0.1, double crossover_factor = 0.7);
+    Solution solve(size_t max_population_size, int max_number_of_generations, int id, double crossover_factor = 0.7);
 
-    explicit Genetic(ProblemInstance instance);
+    explicit Genetic(ProblemInstance instance, double mutation_factor = 0.1);
 
 private:
     ProblemInstance instance;
+    double mutation_factor;
 
     static Solution mutate(const Solution& solution, const ProblemInstance& instance);
+    Solution mutateGene(const Solution& solution);
     Solution crossover(const Solution& parentA, const Solution& parentB);
     Solution crossoverOX(const Solution& parentA, const Solution& parentB);
     static void calculateFitness(std::vector<Solution>& population);
