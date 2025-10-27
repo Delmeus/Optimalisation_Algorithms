@@ -30,7 +30,7 @@ Solution testRandom(const ProblemInstance& instance, int iterationLimit) {
     return bestSolution;
 }
 
-Solution testGenetic(const ProblemInstance& instance, int iterationLimit, int id, int maxPopulationSize = 500) {
+Solution testGenetic(const ProblemInstance& instance, int iterationLimit, int id, int maxPopulationSize = 100) {
     Genetic genetic(instance, 0.1);
     return genetic.solve(maxPopulationSize, iterationLimit, id);
 }
@@ -63,14 +63,14 @@ void runGeneticTests(const ProblemInstance& instance, int testNumber, int iterat
     Solution sol;
 
     std::cout << "[GENETIC] " << testNumber << " running" << std::endl;
-    sol = testGenetic(instance, iterationLimit, testNumber);
+    sol = testGenetic(instance, iterationLimit, testNumber, 100);
 
     std::lock_guard<std::mutex> lock(fileGeneticMutex);
     sol.saveFullSolutionToFile(instance, "genetic/" + instance.name + "_genetic_best_solution.csv");
     sol.saveFullSolutionToFileSolFormat(instance, "genetic/" + instance.name + "_genetic_best_solution.sol");
     sol.saveSolutionToFile("genetic/" + instance.name + "_genetic_costs.csv");
 
-    std::cout << "[GENETIC] finished. Best cost = " << sol.cost << std::endl;
+    std::cout << "[GENETIC] " << testNumber << " finished. Best cost = " << sol.cost << std::endl;
 }
 
 void runTabuTests(const ProblemInstance& instance, int testNumber, int iterationLimit) {
@@ -89,8 +89,8 @@ void runTabuTests(const ProblemInstance& instance, int testNumber, int iteration
 
 int main(int argc, char** argv) {
     if (argc < 3) {
-        ProblemInstance instance("../../input/A-n32-k5.vrp");
-        std::cout << testGenetic(instance, 10000, 0);
+        ProblemInstance instance("../../input/A-n60-k9.vrp");
+        std::cout << testGenetic(instance, 10000, 0, 100);
         // std::cout << testTabu(instance, 10000, 0);
         // std::cout << Greedy::greedySolution(instance);
     }

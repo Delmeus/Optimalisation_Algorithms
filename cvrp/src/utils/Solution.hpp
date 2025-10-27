@@ -8,6 +8,7 @@
 #include <set>
 #include <vector>
 #include <ostream>
+#include <algorithm>
 
 class ProblemInstance;
 
@@ -27,8 +28,30 @@ public:
 
     int routeExceedingCapacity(const ProblemInstance& instance);
 
+    Solution& operator=(const Solution& other) {
+        if (this != &other) {
+            routes = other.routes;
+            cost = other.cost;
+            fitness = 0;
+            timeFound = 0;
+        }
+        return *this;
+    }
+
     bool operator==(const Solution &other) const {
-        return cost == other.cost && routes == other.routes;
+        if (cost != other.cost || routes.size() != other.routes.size())
+            return false;
+
+        auto normalize = [](const std::vector<std::vector<int>>& rs) {
+            std::vector<std::vector<int>> sortedRoutes = rs;
+            std::sort(sortedRoutes.begin(), sortedRoutes.end());
+            return sortedRoutes;
+        };
+
+        auto lhs = normalize(routes);
+        auto rhs = normalize(other.routes);
+
+        return lhs == rhs;
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Solution& solution) {
