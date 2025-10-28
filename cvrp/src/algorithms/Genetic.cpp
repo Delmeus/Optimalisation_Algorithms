@@ -42,18 +42,18 @@ Solution Genetic::solve(size_t max_population_size, int max_number_of_generation
             bestSolution = population[0];
         }
 
+        if (file.is_open())
+            utils::writeGenerationToFile(file, population);
+
         while (population.size() > MINIMAL_NUMBER_OF_INDIVIDUALS && population.back().fitness < MINIMAL_REQUIRED_FITNESS ||
                 population.size() > max_population_size) {
             population.pop_back();
         }
-
-        if (file.is_open())
-            utils::writeGenerationToFile(file, population);
-
+        if (iteration % 100 == 0)
+            std::cout << iteration << " lowest fitness = " << population.back().fitness << std::endl;
         std::vector<Solution> nextGeneration;
         for(auto& element : population){
-            if((element.fitness > ALLOW_INTO_NEXT_GENERATION_THRESHOLD || static_cast<int>(nextGeneration.size()) < MINIMAL_NUMBER_OF_INDIVIDUALS) && !containsSolution(
-                    nextGeneration, element)) {
+            if (element.fitness > ALLOW_INTO_NEXT_GENERATION_THRESHOLD && !containsSolution(nextGeneration, element)) {
                 nextGeneration.push_back(element);
             }
 
@@ -64,9 +64,9 @@ Solution Genetic::solve(size_t max_population_size, int max_number_of_generation
                     mutatedSolution = mutate(element, instance);
                 else
                     mutatedSolution = mutateGene(element);
-                if(!containsSolution(nextGeneration, mutatedSolution)) {
-                    nextGeneration.push_back(mutatedSolution);
-                }
+                // if(!containsSolution(nextGeneration, mutatedSolution)) {
+                nextGeneration.push_back(mutatedSolution);
+                // }
             }
 
             value = distribution(gen);
@@ -77,9 +77,9 @@ Solution Genetic::solve(size_t max_population_size, int max_number_of_generation
                     child = crossover(element, selectParent(population, element));
                 else
                     child= crossoverOX(element, selectParent(population, element));
-                if(!containsSolution(nextGeneration, child)) {
-                    nextGeneration.push_back(child);
-                }
+                // if(!containsSolution(nextGeneration, child)) {
+                nextGeneration.push_back(child);
+                // }
             }
         }
         population = nextGeneration;
@@ -264,6 +264,10 @@ void Genetic::sortAndCalculateFitness(std::vector<Solution>& population) {
     double maxCost = population.back().cost;
 
     double costRange = maxCost - minCost;
+
+    if (costRange < 0.01 * minCost)
+        mutation_factor *= 1.5;
+
     for (auto &solution : population) {
         if (costRange > 0) {
             double score = (solution.cost - minCost) / costRange;

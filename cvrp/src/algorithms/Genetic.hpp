@@ -23,7 +23,7 @@ private:
     Solution mutateGene(const Solution& solution);
     Solution crossover(const Solution& parentA, const Solution& parentB);
     Solution crossoverOX(const Solution& parentA, const Solution& parentB);
-    static void sortAndCalculateFitness(std::vector<Solution>& population);
+    void sortAndCalculateFitness(std::vector<Solution>& population);
     static bool containsSolution(const std::vector<Solution> &solutions, const Solution &solution);
     static Solution selectParent(const std::vector<Solution>& population, const Solution& otherParent, const int tourSize = 5);
 };
