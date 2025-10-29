@@ -30,8 +30,8 @@ Solution testRandom(const ProblemInstance& instance, int iterationLimit) {
     return bestSolution;
 }
 
-Solution testGenetic(const ProblemInstance& instance, int iterationLimit, int id, int maxPopulationSize = 100) {
-    Genetic genetic(instance, 0.1);
+Solution testGenetic(const ProblemInstance& instance, int iterationLimit, int id, int maxPopulationSize = 100, double crossover_factor = 0.7, double mutation_factor = 0.1, int tour_size = -1) {
+    Genetic genetic(instance, crossover_factor, mutation_factor, tour_size);
     return genetic.solve(maxPopulationSize, iterationLimit, id);
 }
 
@@ -59,11 +59,11 @@ void runRandomTests(const ProblemInstance& instance, int numberOfTests, int iter
     std::cout << "[RANDOM] finished. Best cost = " << bestSolutionCost << std::endl;
 }
 
-void runGeneticTests(const ProblemInstance& instance, int testNumber, int iterationLimit) {
+void runGeneticTests(const ProblemInstance& instance, int testNumber, int iterationLimit, int maxPopulationSize = 100, double crossover_factor = 0.7, double mutation_factor = 0.1, int tour_size = -1) {
     Solution sol;
 
     std::cout << "[GENETIC] " << testNumber << " running" << std::endl;
-    sol = testGenetic(instance, iterationLimit, testNumber, 100);
+    sol = testGenetic(instance, iterationLimit, testNumber, maxPopulationSize, crossover_factor, mutation_factor, tour_size);
 
     std::lock_guard<std::mutex> lock(fileGeneticMutex);
     sol.saveFullSolutionToFile(instance, "genetic/" + instance.name + "_genetic_best_solution.csv");
@@ -90,9 +90,7 @@ void runTabuTests(const ProblemInstance& instance, int testNumber, int iteration
 int main(int argc, char** argv) {
     if (argc < 3) {
         ProblemInstance instance("../../input/A-n60-k9.vrp");
-        std::cout << testGenetic(instance, 10000, 0, 100);
-        // std::cout << testTabu(instance, 10000, 0);
-        // std::cout << Greedy::greedySolution(instance);
+        std::cout << testGenetic(instance, 10000, 0, 500);
     }
     else {
         std::string instanceName = argv[1];
@@ -112,7 +110,7 @@ int main(int argc, char** argv) {
         std::vector<std::thread> tabuThreads;
 
         for (int i = 0; i < NUMBER_OF_TESTS; i++) {
-            geneticThreads.emplace_back(runGeneticTests, std::cref(instance), i, iterationLimit);
+            geneticThreads.emplace_back(runGeneticTests, std::cref(instance), i, iterationLimit, 500, 0.7, 0.1, -1);
         }
 
         for (int i = 0; i < NUMBER_OF_TESTS; i++) {

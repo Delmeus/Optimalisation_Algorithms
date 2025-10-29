@@ -85,7 +85,7 @@ std::vector<Neighbour> TabuSearch::generateNeighbours(const Solution& solution) 
 
     std::uniform_int_distribution<> randomCustomer(0, static_cast<int>(path.size() - 1));
 
-    for (int i = 0; i < 5 * instance.dimension; ++i) {
+    for (int i = 0; i < 500; ++i) {
         int c1 = randomCustomer(gen);
         int c2 = randomCustomer(gen);
         while (c1 == c2)

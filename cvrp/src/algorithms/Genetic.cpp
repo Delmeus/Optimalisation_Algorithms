@@ -16,45 +16,44 @@
 #include <ranges>
 
 constexpr double MINIMAL_REQUIRED_FITNESS = 0.7;
-constexpr int MINIMAL_NUMBER_OF_INDIVIDUALS = 20;
+constexpr int MIN_NUMBER_OF_INDIVIDUALS = 20;
 constexpr double ALLOW_INTO_NEXT_GENERATION_THRESHOLD = 0.97;
 
 std::random_device rd;
 std::mt19937 gen(rd());
 
-Solution Genetic::solve(size_t max_population_size, int max_number_of_generations, int id, double crossover_factor) {
+Solution Genetic::solve(size_t max_population_size, int max_number_of_generations, int id) {
     std::ofstream file;
     file.open("../../output/genetic/generations/" + instance.name + "/gen" +  std::to_string(id) + ".csv");
+
     std::vector<Solution> population;
     population.push_back(Greedy::greedySolution(instance));
-    while(population.size() < max_population_size){
+    while(population.size() < max_population_size)
         population.push_back(Random::randomSolution(instance));
-    }
+
     Solution bestSolution;
     bestSolution.cost = INT_MAX;
-
     std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
     int iteration = 0;
     while(iteration < max_number_of_generations){
         sortAndCalculateFitness(population);
-        if(bestSolution.cost > population[0].cost) {
+        if(bestSolution.cost > population[0].cost)
             bestSolution = population[0];
-        }
+
+        while ((population.size() > MIN_NUMBER_OF_INDIVIDUALS && population.back().fitness < MINIMAL_REQUIRED_FITNESS) ||
+                population.size() > max_population_size)
+            population.pop_back();
 
         if (file.is_open())
             utils::writeGenerationToFile(file, population);
 
-        while (population.size() > MINIMAL_NUMBER_OF_INDIVIDUALS && population.back().fitness < MINIMAL_REQUIRED_FITNESS ||
-                population.size() > max_population_size) {
-            population.pop_back();
-        }
-        if (iteration % 100 == 0)
-            std::cout << iteration << " lowest fitness = " << population.back().fitness << std::endl;
         std::vector<Solution> nextGeneration;
+        size_t eliteSolutions = 0;
         for(auto& element : population){
-            if (element.fitness > ALLOW_INTO_NEXT_GENERATION_THRESHOLD && !containsSolution(nextGeneration, element)) {
+            if (eliteSolutions < max_population_size / 10 && element.fitness > ALLOW_INTO_NEXT_GENERATION_THRESHOLD && !containsSolution(nextGeneration, element)) {
                 nextGeneration.push_back(element);
+                eliteSolutions++;
             }
 
             double value = distribution(gen);
@@ -64,24 +63,21 @@ Solution Genetic::solve(size_t max_population_size, int max_number_of_generation
                     mutatedSolution = mutate(element, instance);
                 else
                     mutatedSolution = mutateGene(element);
-                // if(!containsSolution(nextGeneration, mutatedSolution)) {
                 nextGeneration.push_back(mutatedSolution);
-                // }
             }
 
             value = distribution(gen);
             if(value <= crossover_factor){
-//                auto child = crossover(element, selectParent(population, element));
                 Solution child;
                 if (distribution(gen) > 0.1)
-                    child = crossover(element, selectParent(population, element));
+                    child = crossover(element, selectParent(population, element, tour_size));
                 else
-                    child= crossoverOX(element, selectParent(population, element));
-                // if(!containsSolution(nextGeneration, child)) {
+                    child = crossoverOX(element, selectParent(population, element, tour_size));
+
                 nextGeneration.push_back(child);
-                // }
             }
         }
+
         population = nextGeneration;
         iteration++;
     }
@@ -191,9 +187,6 @@ Solution Genetic::crossoverOX(const Solution& parentA, const Solution& parentB){
     Solution child;
     std::unordered_set<int> used;
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> randomCustomer(0, static_cast<int>(parentA.routes.size() / 2 - 1));
     std::vector<int> pathA;
     std::vector<int> pathB;
 
@@ -205,8 +198,9 @@ Solution Genetic::crossoverOX(const Solution& parentA, const Solution& parentB){
         pathB.insert(pathB.end(), route.begin(), route.end());
     }
 
+    std::uniform_int_distribution<> randomCustomer(0, static_cast<int>(pathA.size() / 2 - 1));
     int x1 = randomCustomer(gen);
-    int x2 = std::uniform_int_distribution<>(x1 + 1, x1 + static_cast<int>(parentA.routes.size() / 4))(gen);
+    int x2 = std::uniform_int_distribution<>(x1 + 1, x1 + static_cast<int>(pathA.size() / 4))(gen);
 
     std::vector<int> newPath;
     newPath.insert(newPath.end(), pathA.begin(), pathA.begin() + x1);
@@ -262,10 +256,9 @@ void Genetic::sortAndCalculateFitness(std::vector<Solution>& population) {
     std::sort(population.begin(), population.end(), utils::compareByCost);
     double minCost = population.front().cost;
     double maxCost = population.back().cost;
-
     double costRange = maxCost - minCost;
 
-    if (costRange < 0.01 * minCost)
+    if (costRange < 0.01 * minCost && mutation_factor < 0.3)
         mutation_factor *= 1.5;
 
     for (auto &solution : population) {
@@ -284,6 +277,9 @@ bool Genetic::containsSolution(const std::vector<Solution> &solutions, const Sol
 }
 
 Solution Genetic::selectParent(const std::vector<Solution>& population, const Solution& otherParent, const int tourSize) {
+    if (tourSize < 2)
+        return selectParent(population, otherParent);
+
     if(population.empty())
         return otherParent;
     std::uniform_int_distribution<> distribution(0, static_cast<int>(population.size()) - 1);
@@ -300,27 +296,37 @@ Solution Genetic::selectParent(const std::vector<Solution>& population, const So
         return population[parentId];
 
     return population.front();
-//    if(population.empty())
-//        return otherParent;
-//
-//    double totalFitness = 0.0;
-//    for (const auto& node : population) {
-//        totalFitness += node.fitness;
-//    }
-//
-//    std::uniform_real_distribution<> distribution(0.0, totalFitness);
-//    double randomValue = distribution(gen);
-//    double cumulativeFitness = 0.0;
-//
-//    for (const auto& node : population) {
-//        cumulativeFitness += node.fitness;
-//        double selectionThreshold = std::uniform_real_distribution<>(0.001, 0.4)(gen);
-//        if (cumulativeFitness >= randomValue * selectionThreshold && node != otherParent) {
-//            return node;
-//        }
-//    }
-//
-//    return population.front();
 }
 
-Genetic::Genetic(ProblemInstance instance, double mutation_factor) : instance(std::move(instance)), mutation_factor{mutation_factor} {}
+Solution Genetic::selectParent(const std::vector<Solution>& population, const Solution& otherParent) {
+    if (population.empty())
+        return otherParent;
+
+    double totalFitness = 0.0;
+    for (const auto &node: population) {
+        totalFitness += node.fitness;
+    }
+
+    std::uniform_real_distribution<> distribution(0.0, totalFitness);
+    double randomValue = distribution(gen);
+    double cumulativeFitness = 0.0;
+
+    for (const auto &node: population) {
+        cumulativeFitness += node.fitness;
+        double selectionThreshold = std::uniform_real_distribution<>(0.001, 0.4)(gen);
+        if (cumulativeFitness >= randomValue * selectionThreshold && node != otherParent) {
+            return node;
+        }
+    }
+
+    return population.front();
+}
+
+
+
+Genetic::Genetic(ProblemInstance instance, double crossover_factor, double mutation_factor, int tour_size)
+    : instance(std::move(instance))
+    , crossover_factor{crossover_factor}
+    , mutation_factor{mutation_factor}
+    , tour_size{tour_size}
+{}
