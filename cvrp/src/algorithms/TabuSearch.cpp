@@ -120,9 +120,11 @@ std::vector<Neighbour> TabuSearch::generateNeighbours(const Solution& solution) 
         if (!currentRoute.empty())
             n.solution.routes.push_back(currentRoute);
 
+        n.move.customers = std::make_pair(c1, c2);
         n.solution.calculateAndSetCost(instance);
         neighbours.push_back(std::move(n));
     }
+
     std::ranges::sort(neighbours, [](const Neighbour& a, const Neighbour& b) {
         return a.solution.cost < b.solution.cost;
     });

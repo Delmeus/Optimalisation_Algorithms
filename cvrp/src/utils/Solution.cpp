@@ -66,9 +66,13 @@ int Solution::routeExceedingCapacity(const ProblemInstance &instance) {
     return -1;
 }
 
-void Solution::saveFullSolutionToFile(const ProblemInstance &instance, const std::string& filename) {
+void Solution::saveFullSolutionToFile(const ProblemInstance &instance, const std::string& filename, bool overwrite) {
     std::ofstream file;
-    file.open("../../output/" + filename, std::ios_base::app);
+    if (overwrite)
+        file.open("../../output/" + filename);
+    else
+        file.open("../../output/" + filename, std::ios_base::app);
+
     if (file.is_open()) {
         file << "Cost," << cost << std::endl;
         for(int i = 1; i < routes.size() + 1; i++) {
@@ -108,9 +112,13 @@ void Solution::saveSolutionToFile(const std::string &filename) const {
     }
 }
 
-void Solution::saveFullSolutionToFileSolFormat(const ProblemInstance &instance, const std::string &filename) {
+void Solution::saveFullSolutionToFileSolFormat(const ProblemInstance &instance, const std::string &filename, bool overwrite) {
     std::ofstream file;
-    file.open("../../output/" + filename, std::ios_base::app);
+    if (overwrite)
+        file.open("../../output/" + filename);
+    else
+        file.open("../../output/" + filename, std::ios_base::app);
+
     if (file.is_open()) {
         for(int i = 1; i < routes.size() + 1; i++) {
             int capacity = 0;

@@ -25,6 +25,7 @@ Solution testRandom(const ProblemInstance& instance, int iterationLimit) {
             timer.stop();
             bestSolution.timeFound = timer.mili();
         }
+        sol.saveSolutionToFile("random/" + instance.name + "_random_costs.csv");
         iteration++;
     }
     return bestSolution;
@@ -40,23 +41,12 @@ Solution testTabu(const ProblemInstance& instance, int iterationLimit, int id) {
     return ts.solve(iterationLimit, id);
 }
 
-void runRandomTests(const ProblemInstance& instance, int numberOfTests, int iterationLimit) {
-    int bestSolutionCost = INT_MAX;
+void runRandomTests(const ProblemInstance& instance, int iterationLimit) {
     Solution sol;
-
-    for (int i = 0; i < numberOfTests; i++) {
-        std::cout << "[RANDOM] iteration " << i + 1 << "/" << numberOfTests << std::endl;
-        sol = testRandom(instance, iterationLimit);
-
-        if (sol.cost < bestSolutionCost) {
-            sol.saveFullSolutionToFile(instance, "random/" + instance.name + "_random_best_solution.csv");
-            sol.saveFullSolutionToFileSolFormat(instance, "random/" + instance.name + "_random_best_solution.sol");
-            bestSolutionCost = sol.cost;
-        }
-        sol.saveSolutionToFile("random/" + instance.name + "_random_costs.csv");
-    }
-
-    std::cout << "[RANDOM] finished. Best cost = " << bestSolutionCost << std::endl;
+    sol = testRandom(instance, iterationLimit);
+    sol.saveFullSolutionToFile(instance, "random/" + instance.name + "_random_best_solution.csv");
+    sol.saveFullSolutionToFileSolFormat(instance, "random/" + instance.name + "_random_best_solution.sol");
+    std::cout << "[RANDOM] finished. Best cost = " << sol.cost << std::endl;
 }
 
 void runGeneticTests(const ProblemInstance& instance, int testNumber, int iterationLimit, int maxPopulationSize = 100, double crossover_factor = 0.7, double mutation_factor = 0.1, int tour_size = -1) {
@@ -90,21 +80,25 @@ void runTabuTests(const ProblemInstance& instance, int testNumber, int iteration
 int main(int argc, char** argv) {
     if (argc < 3) {
         ProblemInstance instance("../../input/A-n60-k9.vrp");
-        std::cout << testGenetic(instance, 10000, 0, 500);
+//        std::cout << testTabu(instance, 10000, 0);
+        for (int i = 2; i < instance.dimension + 1; i++) {
+            auto sol = Greedy::greedySolution(instance, i);
+            sol.calculateAndSetCost(instance);
+            sol.saveFullSolutionToFile(instance, "greedy/" + instance.name + "_greedy.csv");
+            sol.saveSolutionToFile("greedy/" + instance.name + "_greedy_costs.csv");
+        }
     }
     else {
         std::string instanceName = argv[1];
         int iterationLimit = std::stoi(argv[2]);
 
         ProblemInstance instance("../../input/" + instanceName);
-        int bestCost = INT_MAX;
-        for (int i = 0; i < instance.dimension - 1; i++) {
+        for (int i = 2; i < instance.dimension + 1; i++) {
             auto sol = Greedy::greedySolution(instance, i);
-            if (sol.cost < bestCost)
-                sol.saveFullSolutionToFile(instance, "greedy/" + instance.name + "_greedy.csv");
+            sol.saveFullSolutionToFile(instance, "greedy/" + instance.name + "_greedy.csv");
             sol.saveSolutionToFile("greedy/" + instance.name + "_greedy_costs.csv");
         }
-        std::thread randomThread(runRandomTests, std::cref(instance), NUMBER_OF_TESTS, iterationLimit);
+        std::thread randomThread(runRandomTests, std::cref(instance), iterationLimit);
 
         std::vector<std::thread> geneticThreads;
         std::vector<std::thread> tabuThreads;
@@ -117,13 +111,12 @@ int main(int argc, char** argv) {
             tabuThreads.emplace_back(runTabuTests, std::cref(instance), i, iterationLimit);
         }
 
+        for (auto &t: geneticThreads)
+            t.join();
+
+        for (auto &t: tabuThreads)
+            t.join();
         randomThread.join();
-
-        for (auto& t : geneticThreads)
-            t.join();
-
-        for (auto& t : tabuThreads)
-            t.join();
     }
 
     return 0;
